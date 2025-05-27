@@ -1,0 +1,36 @@
+services:
+  balancer:
+    image: nginx:mainline-alpine3.21
+    restart: unless-stopped
+    ports:
+      - 8080:80
+    volumes:
+      - ./dist:/var/www/dist
+      - ./config/balancer:/etc/nginx/templates
+  
+  centrifugo:
+    image: centrifugo/centrifugo:v6.1
+    command: centrifugo -c config.json
+    ports:
+      - 127.0.0.1:8000:8000
+    volumes:
+      - ./config/centrifugo/config.json:/centrifugo/config.json
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+
+database:
+  image: postgres:17.4-alpline3.21
+  restart: unless-stoped
+  ports:
+    - 127.0.0.1:5432:5432
+  enviroment:
+    - POSTGRES_USER=${DB_USER}
+    - POSTGRES_PASSWORD=${DB_PASS}
+    - POSTGRES_DB=${DB_NAME}
+  volumes:
+    -database-data:/var/lib/postgresql/data
+
+volumes:
+  database-data:
